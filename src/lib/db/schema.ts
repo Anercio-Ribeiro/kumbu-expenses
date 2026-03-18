@@ -15,6 +15,8 @@ export const incomeCategoryEnum = pgEnum('income_category', [
 ])
 export const goalStatusEnum = pgEnum('goal_status', ['active', 'completed', 'paused'])
 export const creditStatusEnum = pgEnum('credit_status', ['active', 'paid', 'paused'])
+export const debtStatusEnum = pgEnum('debt_status', ['pending', 'settled', 'overdue'])
+export const loanStatusEnum = pgEnum('loan_status', ['pending', 'repaid', 'partial'])
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 export const users = pgTable('users', {
@@ -129,6 +131,39 @@ export const credits = pgTable('credits', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, t => ({ userIdx: index('credit_user_idx').on(t.userId) }))
 
+
+// ─── Debts (money user OWES) ──────────────────────────────────────────────────
+export const debts = pgTable('debts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  description: text('description').notNull(),
+  creditor: text('creditor').notNull(),
+  originalAmount: numeric('original_amount', { precision: 15, scale: 2 }).notNull(),
+  remainingAmount: numeric('remaining_amount', { precision: 15, scale: 2 }).notNull(),
+  dueDate: timestamp('due_date'),
+  status: debtStatusEnum('status').notNull().default('pending'),
+  settledAt: timestamp('settled_at'),
+  settledExpenseId: uuid('settled_expense_id'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, t => ({ userIdx: index('debt_user_idx').on(t.userId) }))
+
+// ─── Loans (money user LENT) ──────────────────────────────────────────────────
+export const loans = pgTable('loans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  description: text('description').notNull(),
+  borrower: text('borrower').notNull(),
+  originalAmount: numeric('original_amount', { precision: 15, scale: 2 }).notNull(),
+  repaidAmount: numeric('repaid_amount', { precision: 15, scale: 2 }).notNull().default('0'),
+  dueDate: timestamp('due_date'),
+  status: loanStatusEnum('status').notNull().default('pending'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, t => ({ userIdx: index('loan_user_idx').on(t.userId) }))
+
 // ─── Children ─────────────────────────────────────────────────────────────────
 export const children = pgTable('children', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -188,6 +223,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   budgets: many(budgets),
   credits: many(credits),
+  debts: many(debts),
+  loans: many(loans),
   customCategories: many(customCategories),
   subcategories: many(subcategories),
 }))
@@ -216,6 +253,15 @@ export const subcategoriesRelations = relations(subcategories, ({ one, many }) =
   user: one(users, { fields: [subcategories.userId], references: [users.id] }),
   category: one(customCategories, { fields: [subcategories.categoryId], references: [customCategories.id] }),
   expenses: many(expenses),
+}))
+
+
+export const debtsRelations = relations(debts, ({ one }) => ({
+  user: one(users, { fields: [debts.userId], references: [users.id] }),
+}))
+
+export const loansRelations = relations(loans, ({ one }) => ({
+  user: one(users, { fields: [loans.userId], references: [users.id] }),
 }))
 
 export const creditsRelations = relations(credits, ({ one, many }) => ({
@@ -253,6 +299,10 @@ export type Goal = typeof goals.$inferSelect
 export type NewGoal = typeof goals.$inferInsert
 export type GoalContribution = typeof goalContributions.$inferSelect
 export type Budget = typeof budgets.$inferSelect
+export type Debt = typeof debts.$inferSelect
+export type NewDebt = typeof debts.$inferInsert
+export type Loan = typeof loans.$inferSelect
+export type NewLoan = typeof loans.$inferInsert
 export type Credit = typeof credits.$inferSelect
 export type NewCredit = typeof credits.$inferInsert
 export type CustomCategory = typeof customCategories.$inferSelect

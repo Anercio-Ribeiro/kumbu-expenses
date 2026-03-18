@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
 import { QueryProvider } from '@/store/query-provider'
 import '@/styles/globals.css'
+import { I18nProvider } from '@/lib/i18n/context'
 
 const sora = Sora({
   subsets: ['latin'],
@@ -30,7 +31,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${sora.variable} ${jetbrains.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <QueryProvider>
+            <I18nProvider>
             {children}
+            </I18nProvider>
             <Toaster
               richColors
               position="bottom-right"

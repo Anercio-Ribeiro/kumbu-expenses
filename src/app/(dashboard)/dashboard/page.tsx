@@ -3,6 +3,9 @@ import { Suspense } from 'react'
 import { getCurrentUser } from '@/lib/auth/session'
 import { getDashboardStats, getMonthlyCashFlow, getGoals } from '@/lib/db/queries'
 import { getTopCategories } from '@/lib/db/category-queries'
+import { getDebtSummary } from '@/lib/db/debt-loan-queries'
+import { getLoanSummary } from '@/lib/db/debt-loan-queries'
+import { calcFinancialHealth } from '@/lib/utils/financial-health'
 import { PageHeader } from '@/components/ui/page-header'
 import { MetricGridSkeleton, ChartSkeleton } from '@/components/ui/skeletons'
 import { DashboardClient } from './dashboard-client'
@@ -15,12 +18,23 @@ async function DashboardData() {
   const year = now.getFullYear()
   const month = now.getMonth() + 1
 
-  const [stats, cashflow, topCats, goals] = await Promise.all([
+  const [stats, cashflow, topCats, goals, debtSummary, loanSummary] = await Promise.all([
     getDashboardStats(user.id, year, month),
     getMonthlyCashFlow(user.id, 6),
     getTopCategories(user.id, year, month),
     getGoals(user.id),
+    getDebtSummary(user.id),
+    getLoanSummary(user.id),
   ])
+
+  const health = calcFinancialHealth(
+    stats.totalIncome,
+    stats.totalExpenses,
+    debtSummary.totalPending,
+    0, // monthly debt payments — approximated
+    loanSummary.totalPending,
+    'pt',
+  )
 
   return (
     <DashboardClient
@@ -29,6 +43,9 @@ async function DashboardData() {
       topCategories={topCats}
       goals={goals}
       userName={user.name.split(' ')[0]}
+      debtSummary={{ totalPending: debtSummary.totalPending, overdueCount: debtSummary.overdueCount }}
+      loanSummary={{ totalPending: loanSummary.totalPending }}
+      health={health}
     />
   )
 }

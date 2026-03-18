@@ -1,130 +1,10 @@
-// import { Metadata } from 'next'
-// import { getCurrentUser } from '@/lib/auth/session'
-// import { getDashboardStats } from '@/lib/db/queries'
-// import { getTopCategories } from '@/lib/db/category-queries'
-// import { formatKz, calc503020, calcSavingsRate } from '@/lib/utils/finance'
-// import { PageHeader } from '@/components/ui/page-header'
-
-// export const metadata: Metadata = { title: 'Dicas' }
-
-// export default async function TipsPage() {
-//   const user = await getCurrentUser()
-//   const now = new Date()
-//   const [stats, topCats] = await Promise.all([
-//     getDashboardStats(user.id, now.getFullYear(), now.getMonth() + 1),
-//     getTopCategories(user.id, now.getFullYear(), now.getMonth() + 1),
-//   ])
-
-//   const topCat = topCats[0]
-//   const rule = calc503020(stats.totalIncome)
-//   const savingsRate = calcSavingsRate(stats.totalIncome, stats.totalExpenses)
-//   const carGoal = 18_000_000
-//   const monthsForCar = stats.balance > 0 ? Math.ceil(carGoal / stats.balance) : 9999
-
-//   const tips = [
-//     {
-//       icon: '💡',
-//       tag: 'Regra Essencial',
-//       tagColor: 'bg-primary/10 text-primary',
-//       title: 'A Regra 50/30/20 do teu rendimento',
-//       body: `Com a tua renda actual, distribui assim: ${formatKz(rule.needs)} para necessidades (casa, comida, saúde), ${formatKz(rule.wants)} para desejos pessoais e ${formatKz(rule.savings)} para poupança e investimento. Esta é a fórmula mais comprovada para equilíbrio financeiro.`,
-//     },
-//     {
-//       icon: '🚗',
-//       tag: 'Objectivo Carro',
-//       tagColor: 'bg-income/10 text-income',
-//       title: 'Plano para o carro de 18.000.000 Kz',
-//       body: `Ao ritmo actual de poupança (${formatKz(Math.max(stats.balance, 0))}/mês), precisarás de ${monthsForCar >= 9999 ? 'rever o plano' : `${monthsForCar} meses (${(monthsForCar / 12).toFixed(1)} anos)`}. Aumentar a poupança para 30% reduziria este tempo em cerca de 35%.`,
-//     },
-//     topCat ? {
-//       icon: topCat.icon,
-//       tag: 'Maior Gasto',
-//       tagColor: 'bg-expense/10 text-expense',
-//       title: `Optimiza os gastos em ${topCat.name}`,
-//       body: `Esta categoria representa ${formatKz(topCat.total)} dos teus gastos este mês. Estratégias práticas: planeia as despesas com antecedência, compara preços entre fornecedores, e estabelece um limite mensal fixo para esta categoria.`,
-//     } : null,
-//     {
-//       icon: '🏦',
-//       tag: 'Fundo de Emergência',
-//       tagColor: 'bg-blue-500/10 text-blue-500',
-//       title: 'Constrói o teu escudo financeiro',
-//       body: `Um fundo de emergência de 3 a 6 meses de despesas (${formatKz(stats.totalExpenses * 3)} a ${formatKz(stats.totalExpenses * 6)}) protege-te de imprevistos sem comprometer os teus objectivos de longo prazo. É a base de qualquer plano financeiro sólido.`,
-//     },
-//     {
-//       icon: '🔄',
-//       tag: 'Automatização',
-//       tagColor: 'bg-purple-500/10 text-purple-500',
-//       title: 'Poupa automaticamente no dia do pagamento',
-//       body: `Transfere ${formatKz(stats.totalIncome * 0.2)} automaticamente para uma conta poupança no dia em que receberes o salário. "Poupa primeiro, gasta o que sobra" — este princípio pode aumentar a taxa de poupança em até 40%.`,
-//     },
-//     {
-//       icon: '⊞',
-//       tag: 'Sub-categorias',
-//       tagColor: 'bg-amber-500/10 text-amber-500',
-//       title: 'Usa sub-categorias para detalhar os gastos',
-//       body: `Ao invés de apenas "Transporte", regista "Combustível", "Manutenção" ou "Lavagem" separadamente. Isso revela exatamente onde o dinheiro vai, facilitando cortar gastos específicos sem sacrificar toda a categoria.`,
-//     },
-//     {
-//       icon: '🛒',
-//       tag: 'Anti-impulso',
-//       tagColor: 'bg-amber-500/10 text-amber-500',
-//       title: 'Regra das 48h para compras não planeadas',
-//       body: `Para qualquer compra acima de ${formatKz(stats.totalIncome * 0.03)}, espera 48 horas antes de decidir. Este hábito elimina compras por impulso e pode reduzir gastos em lazer e compras não essenciais em até 20% ao mês.`,
-//     },
-//     {
-//       icon: '📈',
-//       tag: 'Crescimento',
-//       tagColor: 'bg-green-500/10 text-green-500',
-//       title: 'Investe no teu desenvolvimento profissional',
-//       body: `Cada Kwanza investido em formação e competências multiplica-se na carreira. Com ${savingsRate.toFixed(0)}% de taxa de poupança actual, ${savingsRate >= 20 ? 'podes alocar parte para investimento em educação' : 'atingir 20% de poupança primeiro é a prioridade'}.`,
-//     },
-//   ].filter(Boolean) as NonNullable<typeof tips[0]>[]
-
-//   return (
-//     <div className="animate-fade-in space-y-6">
-//       <PageHeader
-//         title="Dicas de Poupança"
-//         subtitle="Conselhos personalizados baseados nos teus dados financeiros reais"
-//       />
-
-//       <div className={`kanza-card p-5 flex items-center gap-4 ${savingsRate >= 20 ? 'border-income/40 bg-income/5' : savingsRate >= 10 ? 'border-primary/40 bg-primary/5' : 'border-expense/40 bg-expense/5'}`}>
-//         <div className="text-3xl">{savingsRate >= 20 ? '🎉' : savingsRate >= 10 ? '💪' : '🚨'}</div>
-//         <div className="flex-1">
-//           <p className="font-semibold">{savingsRate >= 20 ? 'Excelente taxa de poupança!' : savingsRate >= 10 ? 'Estás a progredir — continua!' : 'Atenção: taxa de poupança baixa'}</p>
-//           <p className="text-sm text-muted-foreground mt-0.5">
-//             Taxa actual: <strong>{savingsRate.toFixed(1)}%</strong>
-//             {savingsRate < 20 && ` · Meta: 20% (faltam ${formatKz(stats.totalIncome * 0.2 - Math.max(stats.balance, 0))} por mês)`}
-//           </p>
-//         </div>
-//       </div>
-
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-//         {tips.map((tip, i) => (
-//           <div key={i} className={`kanza-card p-6 flex gap-4 hover:scale-[1.01] transition-transform ${i === 0 ? 'md:col-span-2' : ''}`}>
-//             <div className="text-3xl flex-shrink-0">{tip.icon}</div>
-//             <div className="flex-1 min-w-0">
-//               <div className="mb-2">
-//                 <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${tip.tagColor}`}>{tip.tag}</span>
-//               </div>
-//               <h3 className="font-bold text-base mb-2">{tip.title}</h3>
-//               <p className="text-sm text-muted-foreground leading-relaxed">{tip.body}</p>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   )
-// }
-
-
-
-
-
 import { Metadata } from 'next'
 import { getCurrentUser } from '@/lib/auth/session'
 import { getDashboardStats } from '@/lib/db/queries'
 import { getTopCategories } from '@/lib/db/category-queries'
-import { formatKz, calc503020, calcSavingsRate } from '@/lib/utils/finance'
+import { getDebtSummary, getLoanSummary } from '@/lib/db/debt-loan-queries'
+import { formatKz, calcSavingsRate } from '@/lib/utils/finance'
+import { classifyIncome, getBudgetSuggestion, calcFinancialHealth } from '@/lib/utils/financial-health'
 import { PageHeader } from '@/components/ui/page-header'
 
 export const metadata: Metadata = { title: 'Dicas' }
@@ -132,77 +12,144 @@ export const metadata: Metadata = { title: 'Dicas' }
 export default async function TipsPage() {
   const user = await getCurrentUser()
   const now = new Date()
-  const [stats, topCats] = await Promise.all([
+  const [stats, topCats, debtSummary, loanSummary] = await Promise.all([
     getDashboardStats(user.id, now.getFullYear(), now.getMonth() + 1),
     getTopCategories(user.id, now.getFullYear(), now.getMonth() + 1),
+    getDebtSummary(user.id),
+    getLoanSummary(user.id),
   ])
 
   const topCat = topCats[0]
-  const rule = calc503020(stats.totalIncome)
   const savingsRate = calcSavingsRate(stats.totalIncome, stats.totalExpenses)
+  const incomeLevel = classifyIncome(stats.totalIncome)
+  const suggestion = getBudgetSuggestion(stats.totalIncome)
+  const health = calcFinancialHealth(
+    stats.totalIncome, stats.totalExpenses,
+    debtSummary.totalPending, 0, loanSummary.totalPending,
+  )
+
   const carGoal = 18_000_000
   const monthsForCar = stats.balance > 0 ? Math.ceil(carGoal / stats.balance) : 9999
 
-  type Tip = { icon: string; tag: string; tagColor: string; title: string; body: string }
+  // Income-level context for personalised advice
+  const isLowIncome = incomeLevel === 'very_low' || incomeLevel === 'low'
+  const isHighIncome = incomeLevel === 'upper_middle' || incomeLevel === 'high'
+
+  type Tip = { icon: string; tag: string; tagColor: string; title: string; body: string; priority?: number }
 
   const tips: Tip[] = ([
+    // Health alert tip — shown first if issues exist
+    health.alerts.length > 0 ? {
+      icon: '🚨',
+      tag: 'Atenção',
+      tagColor: 'bg-expense/10 text-expense',
+      title: 'A tua saúde financeira precisa de atenção',
+      body: health.alerts[0] + (health.alerts.length > 1 ? ` Adicionalmente: ${health.alerts[1]}` : '') + ` O teu score actual é ${health.score}/100 (${health.label}).`,
+      priority: 0,
+    } : null,
+
+    // Budget rule — adapted to income level
     {
       icon: '💡',
-      tag: 'Regra Essencial',
+      tag: isLowIncome ? 'Prioridade' : 'Regra Essencial',
       tagColor: 'bg-primary/10 text-primary',
-      title: 'A Regra 50/30/20 do teu rendimento',
-      body: `Com a tua renda actual, distribui assim: ${formatKz(rule.needs)} para necessidades (casa, comida, saúde), ${formatKz(rule.wants)} para desejos pessoais e ${formatKz(rule.savings)} para poupança e investimento. Esta é a fórmula mais comprovada para equilíbrio financeiro.`,
+      title: isLowIncome
+        ? 'Foca-te em cobrir o essencial primeiro'
+        : `A regra ${suggestion.needs}/${suggestion.wants}/${suggestion.savings} para o teu rendimento`,
+      body: isLowIncome
+        ? `Com a tua renda actual, a prioridade é garantir as necessidades básicas (${formatKz(Math.round(stats.totalIncome * suggestion.needs / 100))}). Mesmo poupar ${formatKz(Math.round(stats.totalIncome * suggestion.savings / 100))} por mês faz diferença a longo prazo.`
+        : `Distribui: ${formatKz(Math.round(stats.totalIncome * suggestion.needs / 100))} para necessidades, ${formatKz(suggestion.leisureBudget)} para lazer e ${formatKz(suggestion.savingsBudget)} para poupança mínima. Isto é adaptado ao teu nível de renda.`,
+      priority: 1,
     },
-    {
-      icon: '🚗',
-      tag: 'Objectivo Carro',
-      tagColor: 'bg-income/10 text-income',
-      title: 'Plano para o carro de 18.000.000 Kz',
-      body: `Ao ritmo actual de poupança (${formatKz(Math.max(stats.balance, 0))}/mês), precisarás de ${monthsForCar >= 9999 ? 'rever o plano' : `${monthsForCar} meses (${(monthsForCar / 12).toFixed(1)} anos)`}. Aumentar a poupança para 30% reduziria este tempo em cerca de 35%.`,
-    },
+
+    // Debt tip — only if there are debts
+    debtSummary.totalPending > 0 ? {
+      icon: '⚠️',
+      tag: 'Dívidas',
+      tagColor: 'bg-expense/10 text-expense',
+      title: 'Estratégia para quitar as tuas dívidas',
+      body: `Tens ${formatKz(debtSummary.totalPending)} em dívidas pendentes${debtSummary.overdueCount > 0 ? `, ${debtSummary.overdueCount} em atraso` : ''}. ${isLowIncome ? 'Prioriza quitar a mais pequena primeiro (método bola de neve) para ganhar confiança.' : 'Considera usar um bónus ou poupança extra para quitar primeiro as dívidas com mais encargos.'} Ao quitares, a despesa é registada automaticamente no Kanza.`,
+      priority: 2,
+    } : null,
+
+    // Loans tip — only if there are outstanding loans
+    loanSummary.totalPending > 0 ? {
+      icon: '🤝',
+      tag: 'Empréstimos',
+      tagColor: 'bg-blue-500/10 text-blue-500',
+      title: `Tens ${formatKz(loanSummary.totalPending)} por receber`,
+      body: `Este valor está fora do teu alcance imediato mas conta como activo. Quando te for devolvido, será adicionado automaticamente como renda. Tenta estabelecer um prazo claro com o devedor para planear os teus fluxos de caixa com mais precisão.`,
+      priority: 3,
+    } : null,
+
+    // Top spending category tip
     topCat ? {
       icon: topCat.icon,
       tag: 'Maior Gasto',
       tagColor: 'bg-expense/10 text-expense',
       title: `Optimiza os gastos em ${topCat.name}`,
-      body: `Esta categoria representa ${formatKz(topCat.total)} dos teus gastos este mês. Estratégias práticas: planeia as despesas com antecedência, compara preços entre fornecedores, e estabelece um limite mensal fixo para esta categoria.`,
+      body: isLowIncome
+        ? `Esta categoria representa ${formatKz(topCat.total)} este mês. Analisa item a item o que podes reduzir sem impactar muito a qualidade de vida — pequenas reduções acumulam muito.`
+        : `Esta categoria representa ${formatKz(topCat.total)} este mês. Estabelece um limite mensal e usa sub-categorias no Kanza para identificar exactamente onde está o excesso.`,
+      priority: 4,
     } : null,
+
+    // Car goal tip
     {
-      icon: '🏦',
-      tag: 'Fundo de Emergência',
+      icon: '🚗',
+      tag: 'Objectivo Carro',
+      tagColor: 'bg-income/10 text-income',
+      title: 'Plano para o carro de 18.000.000 Kz',
+      body: isHighIncome
+        ? `Ao ritmo actual (${formatKz(Math.max(stats.balance, 0))}/mês), precisarás de ${monthsForCar >= 9999 ? 'rever o plano' : `${monthsForCar} meses`}. Com o teu nível de renda, considera também um crédito automóvel parcial para não imobilizar o capital.`
+        : `Ao ritmo actual, precisarás de ${monthsForCar >= 9999 ? 'aumentar a poupança primeiro' : `${monthsForCar} meses (${(monthsForCar / 12).toFixed(1)} anos)`}. Poupar ${formatKz(suggestion.savingsBudget)} por mês chega a ${formatKz(suggestion.savingsBudget * 60)} em 5 anos.`,
+      priority: 5,
+    },
+
+    // Emergency fund
+    {
+      icon: '🛡️',
+      tag: 'Fundo Emergência',
       tagColor: 'bg-blue-500/10 text-blue-500',
-      title: 'Constrói o teu escudo financeiro',
-      body: `Um fundo de emergência de 3 a 6 meses de despesas (${formatKz(stats.totalExpenses * 3)} a ${formatKz(stats.totalExpenses * 6)}) protege-te de imprevistos sem comprometer os teus objectivos de longo prazo. É a base de qualquer plano financeiro sólido.`,
+      title: 'O teu escudo contra imprevistos',
+      body: `Guarda ${suggestion.emergency} meses de despesas em poupança de fácil acesso — entre ${formatKz(stats.totalExpenses * suggestion.emergency / 2)} e ${formatKz(stats.totalExpenses * suggestion.emergency)}. ${isLowIncome ? 'Mesmo começar com 50.000 Kz já cria um amortecedor importante.' : 'Com este fundo, não precisas de recorrer a crédito quando surgem imprevistos.'}`,
+      priority: 6,
     },
-    {
-      icon: '🔄',
-      tag: 'Automatização',
-      tagColor: 'bg-purple-500/10 text-purple-500',
-      title: 'Poupa automaticamente no dia do pagamento',
-      body: `Transfere ${formatKz(stats.totalIncome * 0.2)} automaticamente para uma conta poupança no dia em que receberes o salário. "Poupa primeiro, gasta o que sobra" — este princípio pode aumentar a taxa de poupança em até 40%.`,
-    },
+
+    // Subcategories tip
     {
       icon: '⊞',
       tag: 'Sub-categorias',
       tagColor: 'bg-amber-500/10 text-amber-500',
-      title: 'Usa sub-categorias para detalhar os gastos',
-      body: `Ao invés de apenas "Transporte", regista "Combustível", "Manutenção" ou "Lavagem" separadamente. Isso revela exatamente onde o dinheiro vai, facilitando cortar gastos específicos sem sacrificar toda a categoria.`,
+      title: 'Usa sub-categorias para radiografar os gastos',
+      body: `Em vez de "Transporte" genérico, regista "Combustível", "Manutenção" ou "Táxi". Assim identificas exatamente o que cortar. Por exemplo, talvez reduzir lavagens de carro liberte ${formatKz(Math.round(stats.totalIncome * 0.01))} por mês sem sacrifício real.`,
+      priority: 7,
     },
-    {
-      icon: '🛒',
-      tag: 'Anti-impulso',
-      tagColor: 'bg-amber-500/10 text-amber-500',
-      title: 'Regra das 48h para compras não planeadas',
-      body: `Para qualquer compra acima de ${formatKz(stats.totalIncome * 0.03)}, espera 48 horas antes de decidir. Este hábito elimina compras por impulso e pode reduzir gastos em lazer e compras não essenciais em até 20% ao mês.`,
-    },
-    {
+
+    // Income-level specific tip
+    isHighIncome ? {
       icon: '📈',
+      tag: 'Investimento',
+      tagColor: 'bg-green-500/10 text-green-500',
+      title: 'Diversifica além da poupança tradicional',
+      body: `Com o teu nível de renda, a poupança simples perde valor para a inflação. Considera depositos a prazo em bancos angolanos, títulos do tesouro AOA, ou investimento em negócios locais. A regra: mínimo ${suggestion.savings}% poupado antes de qualquer investimento.`,
+      priority: 8,
+    } : isLowIncome ? {
+      icon: '📚',
       tag: 'Crescimento',
       tagColor: 'bg-green-500/10 text-green-500',
-      title: 'Investe no teu desenvolvimento profissional',
-      body: `Cada Kwanza investido em formação e competências multiplica-se na carreira. Com ${savingsRate.toFixed(0)}% de taxa de poupança actual, ${savingsRate >= 20 ? 'podes alocar parte para investimento em educação' : 'atingir 20% de poupança primeiro é a prioridade'}.`,
+      title: 'Investe no aumento da tua renda',
+      body: `A forma mais eficaz de melhorar a saúde financeira com renda baixa é aumentá-la. Competências digitais, formação profissional ou trabalho freelance podem representar um aumento real de renda em 6-12 meses. Mesmo que pequeno, cada Kwanza extra ajuda.`,
+      priority: 8,
+    } : {
+      icon: '🔄',
+      tag: 'Automatização',
+      tagColor: 'bg-purple-500/10 text-purple-500',
+      title: 'Automatiza a poupança no dia do pagamento',
+      body: `Transfere ${formatKz(suggestion.savingsBudget)} automaticamente no dia em que recebes. "Poupa primeiro, gasta o que sobra." Este hábito pode aumentar a poupança real em até 40% em comparação com poupar o que sobra no fim do mês.`,
+      priority: 8,
     },
-  ] as (Tip | null)[]).filter((t): t is Tip => t !== null)
+  ] as (Tip | null)[]).filter((t): t is Tip => t !== null).sort((a, b) => (a.priority ?? 9) - (b.priority ?? 9))
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -211,20 +158,29 @@ export default async function TipsPage() {
         subtitle="Conselhos personalizados baseados nos teus dados financeiros reais"
       />
 
-      <div className={`kanza-card p-5 flex items-center gap-4 ${savingsRate >= 20 ? 'border-income/40 bg-income/5' : savingsRate >= 10 ? 'border-primary/40 bg-primary/5' : 'border-expense/40 bg-expense/5'}`}>
-        <div className="text-3xl">{savingsRate >= 20 ? '🎉' : savingsRate >= 10 ? '💪' : '🚨'}</div>
+      {/* Health banner */}
+      <div className={`kanza-card p-5 flex items-center gap-4 border-2`} style={{ borderColor: health.color + '50', background: health.color + '08' }}>
+        <div className="text-3xl">
+          {health.level === 'excellent' ? '🎉' : health.level === 'good' ? '💪' : health.level === 'fair' ? '📊' : health.level === 'poor' ? '⚠️' : '🚨'}
+        </div>
         <div className="flex-1">
-          <p className="font-semibold">{savingsRate >= 20 ? 'Excelente taxa de poupança!' : savingsRate >= 10 ? 'Estás a progredir — continua!' : 'Atenção: taxa de poupança baixa'}</p>
+          <p className="font-semibold">
+            Saúde financeira: <span style={{ color: health.color }}>{health.label}</span>
+            <span className="text-sm text-muted-foreground ml-2">({health.score}/100)</span>
+          </p>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Taxa actual: <strong>{savingsRate.toFixed(1)}%</strong>
-            {savingsRate < 20 && ` · Meta: 20% (faltam ${formatKz(stats.totalIncome * 0.2 - Math.max(stats.balance, 0))} por mês)`}
+            Taxa de poupança: <strong>{savingsRate.toFixed(1)}%</strong>
+            {' · '}
+            Meta sugerida: <strong>{suggestion.savings}%</strong>
+            {savingsRate < suggestion.savings && ` · Faltam ${formatKz(Math.round((suggestion.savings - savingsRate) * stats.totalIncome / 100))} por mês`}
           </p>
         </div>
       </div>
 
+      {/* Tips grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {tips.map((tip, i) => (
-          <div key={i} className={`kanza-card p-6 flex gap-4 hover:scale-[1.01] transition-transform ${i === 0 ? 'md:col-span-2' : ''}`}>
+          <div key={i} className={`kanza-card p-6 flex gap-4 hover:scale-[1.01] transition-transform ${i === 0 && tips[0].tag === 'Atenção' ? 'md:col-span-2 border-expense/30' : i === 1 && tips[0].tag !== 'Atenção' ? 'md:col-span-2' : ''}`}>
             <div className="text-3xl flex-shrink-0">{tip.icon}</div>
             <div className="flex-1 min-w-0">
               <div className="mb-2">
